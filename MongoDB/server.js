@@ -1,10 +1,13 @@
 const express = require("express");
 const app = express();
-const mongoose = require("mongoose");
+const mongoose = require("mongoose"); //mongoose package
+
+//Database auth URL
 const db_link =
   "mongodb+srv://kartik:foodAppkartikey@cluster0.q6888vs.mongodb.net/?retryWrites=true&w=majority";
 
-mongoose
+//connecting MongoDB database with our application
+mongoose    
   .connect(db_link)
   .then(function (db) {
     console.log("db connected");
@@ -13,6 +16,8 @@ mongoose
     console.log(err);
   });
 
+
+//Defining Schema for our Users
 const userSchema = mongoose.Schema({
   name: {
     type: String,
@@ -35,20 +40,25 @@ const userSchema = mongoose.Schema({
   },
 });
 
+
+//Model of user created with userSchema
 const userModel = mongoose.model("userModel", userSchema);
 
+//server is listening to the requests
 app.listen(3000, () => {
   console.log("Server is running at Port 3000");
 });
 
+//middleware function
 app.use(express.json());
 
+//router apps
 const userRouter = express.Router();
-const authRouter = express.Router();
 
+//path of that router
 app.use("/user", userRouter);
-app.use("/auth", authRouter);
 
+//methods that will applied to these paths(get, post, patch, delete)
 userRouter
   .route("/")
   .get(getUser)
@@ -57,6 +67,7 @@ userRouter
   .patch(updateUser)
   .delete(deleteUser);
 
+//example to create a user  
 async function createUser() {
   let user1 = {
     name: "Jasbir",
@@ -68,6 +79,7 @@ async function createUser() {
   console.log(data);
 };
 
+//function to get the list of all the users
 async function getUsers(req, res) {
   let allUsers = await userModel.find();
   res.json({
@@ -76,14 +88,17 @@ async function getUsers(req, res) {
   });
 };
 
+//function to get the particular user
 async function getUser(req, res) {
-  let particularUser = await userModel.findOne({ name: "Abhishek" });
+  let userToFind = req.body;  //{ name: "Abhishek" }
+  let particularUser = await userModel.findOne(userToFind);
   res.json({
     message: "Details of Particular user",
     data: particularUser,
   });
 };
 
+//function to create a user and send that user data to the database
 async function postUser(req, res) {
   let data = req.body;
   let userData = await userModel.create(data);
@@ -94,6 +109,7 @@ async function postUser(req, res) {
   });
 };
 
+//function to update the particular information of any user
 async function updateUser(req, res) {
   console.log(req.body);
   let dataToBeUpdated = req.body;
@@ -101,28 +117,15 @@ async function updateUser(req, res) {
   res.json({
     message: "userData updated successfully",
     userDataUpdated : dataToBeUpdated,
-    
   });
 };
 
+//function to delete the user
 async function deleteUser(req, res) {
   let userToDelete = req.body;  
   let userToBeDeleted = await userModel.findOneAndDelete(userToDelete);
   res.json({
     message: "userData deleted successfully",
     userDataDeleted : userToBeDeleted,
-  });
-};
-
-function getSignup(req, res) {
-  res.sendFile("/public/index.html", { root: __dirname });
-};
-
-function postSignup(req, res) {
-  let data = req.body;
-  console.log(data);
-  res.json({
-    message: "user signed up",
-    data: data,
   });
 };
